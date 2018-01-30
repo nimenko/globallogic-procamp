@@ -6,6 +6,8 @@ CONFIG -= qt
 QMAKE_CXXFLAGS += -std=c++0x -pthread
 LIBS += -pthread
 
+LIBS += -L/usr/lib/ -lboost_system -lboost_filesystem
+
 INCLUDEPATH += /usr/local/include/opencv
 LIBS += -L/usr/local/lib -lopencv_core -lopencv_imgcodecs -lopencv_highgui -lopencv_imgproc
 

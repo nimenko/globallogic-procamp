@@ -4,6 +4,8 @@
 #include <thread>
 #include <future>
 
+#include <boost/filesystem.hpp>
+
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
@@ -26,18 +28,18 @@ cv::Mat MultithreadedResizer::resize_image_single_thread(const std::string& inpu
     // Read input image.
     read_image(input_image_path);
 
-    std::chrono::high_resolution_clock::time_point st_start = std::chrono::high_resolution_clock::now();
+    //std::chrono::high_resolution_clock::time_point st_start = std::chrono::high_resolution_clock::now();
 
     output_image_width_ = output_width;
     output_image_height_ = output_height;
 
     cv::resize(input_image_, output_image_, cv::Size(output_image_width_, output_image_height_));
 
-    std::chrono::high_resolution_clock::time_point st_finish = std::chrono::high_resolution_clock::now();
+    //std::chrono::high_resolution_clock::time_point st_finish = std::chrono::high_resolution_clock::now();
 
-    auto st_duration = std::chrono::duration_cast<std::chrono::microseconds>(st_finish - st_start).count();
+    //auto st_duration = std::chrono::duration_cast<std::chrono::microseconds>(st_finish - st_start).count();
 
-    std::cout << "Single-threaded duration: " << st_duration << " microseconds." << std::endl;
+    //std::cout << "Single-threaded duration: " << st_duration << " microseconds." << std::endl;
 
     save_image(output_image_, output_image_path);
 
@@ -52,7 +54,7 @@ cv::Mat MultithreadedResizer::resize_image_std_thread(const std::string& input_i
     // Read input image.
     read_image(input_image_path);
 
-    std::chrono::high_resolution_clock::time_point mt_start = std::chrono::high_resolution_clock::now();
+    //std::chrono::high_resolution_clock::time_point mt_start = std::chrono::high_resolution_clock::now();
 
     output_image_width_ = output_width;
     output_image_height_ = output_height;
@@ -88,11 +90,11 @@ cv::Mat MultithreadedResizer::resize_image_std_thread(const std::string& input_i
         thread.join();
     }
 
-    std::chrono::high_resolution_clock::time_point mt_finish = std::chrono::high_resolution_clock::now();
+    //std::chrono::high_resolution_clock::time_point mt_finish = std::chrono::high_resolution_clock::now();
 
-    auto mt_duration = std::chrono::duration_cast<std::chrono::microseconds>(mt_finish - mt_start).count();
+    //auto mt_duration = std::chrono::duration_cast<std::chrono::microseconds>(mt_finish - mt_start).count();
 
-    std::cout << "Multi-threaded (std::thread) implementation duration: " << mt_duration << " microseconds." << std::endl;
+    //std::cout << "Multi-threaded (std::thread) implementation duration: " << mt_duration << " microseconds." << std::endl;
 
     save_image(output_image_, output_image_path);
 
@@ -105,7 +107,7 @@ cv::Mat MultithreadedResizer::resize_image_std_async(const std::string& input_im
     // Read input image.
     read_image(input_image_path);
 
-    std::chrono::high_resolution_clock::time_point async_start = std::chrono::high_resolution_clock::now();
+    //std::chrono::high_resolution_clock::time_point async_start = std::chrono::high_resolution_clock::now();
 
     output_image_width_ = output_width;
     output_image_height_ = output_height;
@@ -142,11 +144,11 @@ cv::Mat MultithreadedResizer::resize_image_std_async(const std::string& input_im
         result.get();
     }
 
-    std::chrono::high_resolution_clock::time_point async_finish = std::chrono::high_resolution_clock::now();
+    //std::chrono::high_resolution_clock::time_point async_finish = std::chrono::high_resolution_clock::now();
 
-    auto async_duration = std::chrono::duration_cast<std::chrono::microseconds>(async_finish - async_start).count();
+    //auto async_duration = std::chrono::duration_cast<std::chrono::microseconds>(async_finish - async_start).count();
 
-    std::cout << "Multi-threaded (std::async) implementation duration: " << async_duration << " microseconds." << std::endl;
+    //std::cout << "Multi-threaded (std::async) implementation duration: " << async_duration << " microseconds." << std::endl;
 
     // Save image.
     save_image(output_image_, output_image_path);
@@ -157,7 +159,33 @@ cv::Mat MultithreadedResizer::resize_image_std_async(const std::string& input_im
 void MultithreadedResizer::resize_images_std_async(const std::string& input_images_dir, unsigned int output_width,
                                                    unsigned int output_height, const std::string& output_images_dir)
 {
+    bool is_output_dir_exists = boost::filesystem::exists(output_images_dir);
 
+    for (auto& file : boost::filesystem::directory_iterator(input_images_dir))
+    {
+        if (file.path().extension() == JPG_EXTENSION)
+        {
+            if (!is_output_dir_exists)
+            {
+                if (boost::filesystem::create_directory(output_images_dir))
+                {
+                    std::cout << "Directory " << output_images_dir << " was created." << std::endl;
+
+                    is_output_dir_exists = true;
+                }
+                else
+                {
+                    std::cout << "Failed to create directory: " << output_images_dir << std::endl;
+                    std::terminate();
+                }
+            }
+
+            std::string output_image_name = "output_" + file.path().filename().string();
+            std::string output_image_path = boost::filesystem::path(output_images_dir + "/" + output_image_name).string();
+
+            resize_image_std_async(file.path().string(), output_width, output_height, output_image_path);
+        }
+    }
 }
 
 void MultithreadedResizer::process_chunk(cv::Mat& input_image, unsigned int chunk_width, unsigned int chunk_height,
@@ -287,18 +315,27 @@ void MultithreadedResizer::read_image(const std::string& image_path)
         input_image_width_ = input_image_.size().width;
         input_image_height_ = input_image_.size().height;
 
-        std::cout << "Image width: " << input_image_width_ << std::endl;
-        std::cout << "Image height: " << input_image_height_ << std::endl;
+        //std::cout << "Image width: " << input_image_width_ << std::endl;
+        //std::cout << "Image height: " << input_image_height_ << std::endl;
     }
     else
     {
-        std::cerr << "Could not read image." << std::endl;
+        std::cerr << "Failed to read image: " << image_path << std::endl;
+        std::terminate();
     }
 }
 
 void MultithreadedResizer::save_image(const cv::Mat& image, const std::string& path)
 {
-    cv::imwrite(path, image);
+    if (cv::imwrite(path, image))
+    {
+        //std::cout << "Saved to: " << path << std::endl;
+    }
+    else
+    {
+        std::cout << "Failed to save to: " << path << std::endl;
+        std::terminate();
+    }
 }
 
 void MultithreadedResizer::show_image(const cv::Mat& image)

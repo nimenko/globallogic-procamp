@@ -42,6 +42,8 @@ public:
     static void show_image(const cv::Mat& image);
     static unsigned int get_cores_number();
 
+    const std::string JPG_EXTENSION = ".jpg";
+
 private:
     cv::Mat input_image_;
     unsigned int input_image_width_;
