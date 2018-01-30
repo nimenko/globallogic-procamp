@@ -7,8 +7,8 @@
 #include <semaphore.h>
 #include <chrono>
 
-const unsigned int ARRAYS_NUMBER = 10;
-const unsigned int ARRAYS_SIZE = 10;
+const unsigned int ARRAYS_NUMBER = 1000;
+const unsigned int ARRAYS_SIZE = 1000;
 
 std::vector<int*> arrays (ARRAYS_NUMBER);
 std::vector<pthread_t> threads (ARRAYS_NUMBER);
@@ -59,7 +59,7 @@ void* sort_array(void* array)
     return nullptr;
 }
 
-void sort_arrays()
+void sort_arrays_pthread()
 {
     auto arr_it = arrays.begin();
     auto thr_it = threads.begin();
@@ -81,14 +81,10 @@ void sort_arrays()
 }
 
 void sort_arrays_single_thread()
-{
-    auto arr_it = arrays.begin();
-
-    while (arr_it != arrays.end())
+{    
+    for (auto it = arrays.begin(); it != arrays.end(); ++it)
     {
-        std::sort(*arr_it, *(arr_it) + ARRAYS_SIZE);
-
-        ++arr_it;
+        std::sort(*it, *(it) + ARRAYS_SIZE);
     }
 }
 
@@ -128,15 +124,15 @@ int main()
     std::chrono::high_resolution_clock::time_point mt_start = std::chrono::high_resolution_clock::now();
     create_and_fill_arrays();
     //print_arrays();
-    sort_arrays();
+    sort_arrays_pthread();
     //print_arrays();
     std::chrono::high_resolution_clock::time_point mt_finish = std::chrono::high_resolution_clock::now();
 
     auto st_duration = std::chrono::duration_cast<std::chrono::microseconds> (st_finish - st_start).count();
-    std::cout << "Singlethreaded duration: " << st_duration << " microseconds." << std::endl;
+    std::cout << "Single-threaded duration: " << st_duration << " microseconds." << std::endl;
 
     auto mt_duration = std::chrono::duration_cast<std::chrono::microseconds> (mt_finish - mt_start).count();
-    std::cout << "Multithreaded duration: " << mt_duration << " microseconds." << std::endl << std::endl;
+    std::cout << "Multi-threaded duration: " << mt_duration << " microseconds." << std::endl << std::endl;
 
     return 0;
 }
