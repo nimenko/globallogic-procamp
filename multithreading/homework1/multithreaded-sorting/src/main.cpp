@@ -128,6 +128,8 @@ int main()
     //print_arrays();
     std::chrono::high_resolution_clock::time_point mt_finish = std::chrono::high_resolution_clock::now();
 
+    delete_arrays();
+
     auto st_duration = std::chrono::duration_cast<std::chrono::microseconds> (st_finish - st_start).count();
     std::cout << "Single-threaded duration: " << st_duration << " microseconds." << std::endl;
 
