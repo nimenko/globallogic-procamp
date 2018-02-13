@@ -1,0 +1,12 @@
+TEMPLATE = app
+CONFIG += console c++11
+CONFIG -= app_bundle
+CONFIG -= qt
+
+SOURCES += src/main.cpp \
+    src/client.cpp
+
+HEADERS += \
+    include/client.h
+
+LIBS += -L/usr/lib/ -lboost_system -lpthread
